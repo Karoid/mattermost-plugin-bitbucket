@@ -75,6 +75,7 @@ func NewPlugin() *Plugin {
 		"help":          p.handleHelp,
 		"":              p.handleHelp,
 		"settings":      p.handleSettings,
+		"testpush":      nil,
 	}
 
 	return p

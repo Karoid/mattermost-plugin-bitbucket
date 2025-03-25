@@ -30,7 +30,8 @@ const commandHelp = `* |/bitbucket connect| - Connect your Mattermost account to
 * |/bitbucket me| - Display the connected Bitbucket account
 * |/bitbucket settings [setting] [value]| - Update your user settings
   * |setting| can be "notifications" or "reminders"
-  * |value| can be "on" or "off"`
+  * |value| can be "on" or "off"
+* |/bitbucket testpush| - Test the push notification message format`
 
 const (
 	featureIssues        = "issues"
@@ -121,6 +122,9 @@ func getAutocompleteData() *model.AutocompleteData {
 
 	me := model.NewAutocompleteData("me", "", "Display the connected Bitbucket account")
 	bitbucket.AddCommand(me)
+
+	testpush := model.NewAutocompleteData("testpush", "", "Test push notification message format")
+	bitbucket.AddCommand(testpush)
 
 	subscriptions := model.NewAutocompleteData("subscriptions", "[command]", "Available commands: list, add")
 	subscriptionsList := model.NewAutocompleteData("list", "", "List Subscription for this channel")
@@ -385,6 +389,20 @@ func (p *Plugin) handleSettings(_ *plugin.Context, _ *model.CommandArgs, paramet
 	return "Settings updated."
 }
 
+// handleTestPush 함수는 푸시 알림 템플릿을 테스트합니다.
+func (p *Plugin) handleTestPush(_ *plugin.Context, _ *model.CommandArgs, _ []string) string {
+	// 푸시 이벤트 알림 메시지 템플릿 직접 반환
+	message := `
+[**:bust_in_silhouette: 조니**](https://bitbucket.org/%7B32224a0e-353e-4a95-bcbc-1d87f935e3c5%7D/) pushed [**:white_check_mark: 5 new commits**](https://bitbucket.org/mewpot/mewpot/branches/compare/99ec4480c4ce2db22285378ee803e3c9e2a20764..7a670b068eee32e0ad6073655ba79ae1ed0269af) to [**` + "`mewpot/mewpot:master`" + `**](https://bitbucket.org/mewpot/mewpot/branch/master):
+> [` + "`99ec44`" + `](https://bitbucket.org/mewpot/mewpot/commits/99ec4480c4ce2db22285378ee803e3c9e2a20764) [Feat] 뮤직플렉스 플랫폼 심사 과정 일부 자동화 기능 완성 - [**조니**](https://bitbucket.org/%7B32224a0e-353e-4a95-bcbc-1d87f935e3c5%7D/)
+> [` + "`50b9d3`" + `](https://bitbucket.org/mewpot/mewpot/commits/50b9d333d82f7afa9562e424e63fa59e159de804) Merge branch 'nightly' of https://bitbucket.org/mewpot/mewpot into johnny-youtube-crawling - [**조니**](https://bitbucket.org/%7B32224a0e-353e-4a95-bcbc-1d87f935e3c5%7D/)
+> [` + "`da003a`" + `](https://bitbucket.org/mewpot/mewpot/commits/da003a890aec84eb0059d9540173275cb46697f6) [Refactor] 유튜브 응답 객체가 uploadDate도 가져올 수 있도록 body 변경 - [**조니**](https://bitbucket.org/%7B32224a0e-353e-4a95-bcbc-1d87f935e3c5%7D/)
+> [` + "`534198`" + `](https://bitbucket.org/mewpot/mewpot/commits/534198e8dca2d087239b26d3acf924603b9addf8) [Refactor] 유튜브 크롤러 코드 리팩토링 - [**조니**](https://bitbucket.org/%7B32224a0e-353e-4a95-bcbc-1d87f935e3c5%7D/)
+> [` + "`b44ee4`" + `](https://bitbucket.org/mewpot/mewpot/commits/b44ee4cd32bb0e849049dfc13a9feef033891c8f) [Making] 적발 프로세스 기능 구현 중 - [**조니**](https://bitbucket.org/%7B32224a0e-353e-4a95-bcbc-1d87f935e3c5%7D/)
+`
+	return message
+}
+
 type commandHandleFunc func(c *plugin.Context, args *model.CommandArgs, parameters []string, userInfo *BitbucketUserInfo) string
 
 // ExecuteCommand executes a command that has been previously registered via the RegisterCommand API.
@@ -418,6 +436,12 @@ func (p *Plugin) ExecuteCommand(c *plugin.Context, args *model.CommandArgs) (*mo
 
 	if action == "help" {
 		message := p.handleHelp(c, args, parameters, nil)
+		p.postCommandResponse(args, message)
+		return &model.CommandResponse{}, nil
+	}
+
+	if action == "testpush" {
+		message := p.handleTestPush(c, args, parameters)
 		p.postCommandResponse(args, message)
 		return &model.CommandResponse{}, nil
 	}
